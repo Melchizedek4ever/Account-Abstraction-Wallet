@@ -46,4 +46,12 @@ genesis:
     - cost-voting
     - bns
 plan:
-  batches: []
+  batches:
+    - id: 0
+      transactions:
+        - emulated-contract-publish:
+            contract-name: guardians
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: "contracts\\guardians.clar"
+            clarity-version: 3
+      epoch: "3.0"
