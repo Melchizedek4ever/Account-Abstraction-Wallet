@@ -4,9 +4,8 @@
 ;; description:
 (use-trait extension-trait .extension-trait.extension-trait)
 
-(use-trait sip-010-trait 'SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard.sip-010-trait)
-(use-trait sip-009-trait 'SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.nft-trait)
-(use-trait sip-013-trait 'SPDBEG5X8XD50SPM1JJH0E5CTXGDV5NJTKAKKR5V.sip013-semi-fungible-token-trait)
+(use-trait sip-010-trait .sip-010-trait.sip-010-trait)
+(use-trait sip-009-trait .sip-009-trait.nft-trait)
 
 (define-constant err-unauthorised (err u401))
 (define-constant err-forbidden (err u403))
@@ -31,9 +30,9 @@
 	(is-admin-calling)
 )
 
-(define-private (is-allowed-sip013 (sip013 <sip-013-trait>) (amount uint) (recipient principal) 
-	(is-admin-calling)
-)
+;;(define-private (is-allowed-sip013 (sip013 <sip-013-trait>) (amount uint) (recipient principal) 
+;;	(is-admin-calling)
+;;)
 ;;
 ;; calls with context switching
 ;;
@@ -72,15 +71,15 @@
 	)
 )
 
-(define-public (sip013-transfer (token-id uint) (sender principal) (recipient principal) (sip013 <sip-013-trait>))
-	(begin
-		(try! (is-allowed-sip013 sip013 token-id recipient))
-		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) (err-unauthorised))
-		(contract-call? sip013 ft-transfer? token-id (as-contract tx-sender) recipient)
-		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
-		(ok true)	
-	)
-)
+;;(define-public (sip013-transfer (token-id uint) (sender principal) (recipient principal) (sip013 <sip-013-trait>))
+;;	(begin
+;;		(try! (is-allowed-sip013 sip013 token-id recipient))
+;;		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) (err-unauthorised))
+;;		(contract-call? sip013 ft-transfer? token-id (as-contract tx-sender) recipient)
+;;		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
+;;		(ok true)	
+;;	)
+;;)
 
 
 ;;
@@ -109,4 +108,4 @@
 (map-set admins tx-sender true)
 (map-set admins (as-contract tx-sender) true)
 ;; send 1000 ustx to the smart wallet
-(stx-transfer? u1000 tx-sender (as-contract tx-sender)))
+(stx-transfer? u1000 tx-sender (as-contract tx-sender))

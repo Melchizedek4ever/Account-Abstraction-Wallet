@@ -65,6 +65,16 @@ plan:
             path: contracts/extension-trait.clar
             clarity-version: 3
         - emulated-contract-publish:
+            contract-name: sip-009-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/sip-009-trait.clar
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: sip-010-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/sip-010-trait.clar
+            clarity-version: 3
+        - emulated-contract-publish:
             contract-name: sip-013-trait
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/sip-013-trait.clar
