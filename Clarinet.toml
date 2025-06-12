@@ -8,32 +8,32 @@ requirements = []
 [contracts.extension-trait]
 path = 'contracts/extension-trait.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.sip-009-trait]
 path = 'contracts/sip-009-trait.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.sip-010-trait]
 path = 'contracts/sip-010-trait.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.sip-013-trait]
 path = 'contracts/sip-013-trait.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.smart-wallet]
 path = 'contracts/smart-wallet.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.smart-wallet-trait]
 path = 'contracts/smart-wallet-trait.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 [repl.analysis]
 passes = ['check_checker']
 

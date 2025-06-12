@@ -33,9 +33,9 @@
 ;;(define-private (is-allowed-sip013 (sip013 <sip-013-trait>) (amount uint) (recipient principal) 
 ;;	(is-admin-calling)
 ;;)
-;;
+
 ;; calls with context switching
-;;
+
 (define-public (stx-transfer (amount uint) (recipient principal) (memo (optional (buff 34))))
 	(begin
 		(try! (is-allowed-stx amount recipient memo))
