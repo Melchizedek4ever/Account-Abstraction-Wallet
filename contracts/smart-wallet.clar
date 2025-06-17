@@ -6,6 +6,8 @@
 
 (use-trait sip-010-trait .sip-010-trait.sip-010-trait)
 (use-trait sip-009-trait .sip-009-trait.nft-trait)
+(use-trait sip-013-trait .sip-013-trait.sip013-semi-fungible-token-trait)
+
 
 (define-constant err-unauthorised (err u401))
 (define-constant err-forbidden (err u403))
@@ -30,9 +32,9 @@
 	(is-admin-calling)
 )
 
-;;(define-private (is-allowed-sip013 (sip013 <sip-013-trait>) (amount uint) (recipient principal) 
-;;	(is-admin-calling)
-;;)
+(define-private (is-allowed-sip013 (sip013 <sip-013-trait>) (amount uint) (recipient principal)) 
+	(is-admin-calling)
+)
 
 ;; calls with context switching
 
@@ -71,16 +73,24 @@
 	)
 )
 
-;;(define-public (sip013-transfer (token-id uint) (sender principal) (recipient principal) (sip013 <sip-013-trait>))
-;;	(begin
-;;		(try! (is-allowed-sip013 sip013 token-id recipient))
-;;		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) (err-unauthorised))
-;;		(contract-call? sip013 ft-transfer? token-id (as-contract tx-sender) recipient)
-;;		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
-;;		(ok true)	
-;;	)
-;;)
+(define-public (sip013-transfer (amount uint) (token-id uint) (sender principal) (recipient principal) (sip013 (sip-013-trait)))
+	(begin
+		(try! (is-allowed-sip013 sip013 token-id recipient))
+		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) err-unauthorised)
+		(contract-call? sip013 transfer amount token-id (as-contract tx-sender) recipient)
+		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
+		(ok true)	
+	)
+)
 
+;;(define-public (transfer (token-id uint) (amount uint) (sender principal) (recipient principal) (response bool uint))
+;;        (begin
+;;    	(try! (is-allowed-sip013 sip013 token-id recipient))  
+;;    	(asserts! (or (is-eq tx-sender recipient) (is-eq tx-sender contract-caller)) err-unauthorised)
+;;    	(as-contract (contract-call? sip013 transfer token-id amount sender recipient))
+;;    	(print {type: "sft_transfer", token-id: token-id, sender: tx-sender, recipient: recipient, amount: amount})
+;;    	(ok true)
+;;  )
 
 ;;
 ;; admin functions

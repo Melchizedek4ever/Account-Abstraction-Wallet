@@ -4,9 +4,10 @@ clarinet = "./Clarinet.toml"
 
 # Set where you'd like TypeScript types output.
 # Comment or remove section to skip TypeScript types
-[types]
+
 # `output` should be a path to a single file
-output = "src/clarigen-types.ts"
+[types]
+output = "src/clarigen-types"
 
 # You can also specify multiple output paths:
 # outputs = [
