@@ -6,7 +6,8 @@
 
 (use-trait sip-010-trait .sip-010-trait.sip-010-trait)
 (use-trait sip-009-trait .sip-009-trait.nft-trait)
-(use-trait sip-013-trait .sip-013-trait.sip013-semi-fungible-token-trait)
+(use-trait sip-013-trait 'SPDBEG5X8XD50SPM1JJH0E5CTXGDV5NJTKAKKR5V.sip013-semi-fungible-token-trait.sip013-semi-fungible-token-trait)
+;;(use-trait sip-013-trait .sip013-semi-fungible-token-trait.sip013-semi-fungible-token-trait)
 
 
 (define-constant err-unauthorised (err u401))
@@ -73,24 +74,44 @@
 	)
 )
 
-(define-public (sip013-transfer (amount uint) (token-id uint) (sender principal) (recipient principal) (sip013 (sip-013-trait)))
-	(begin
-		(try! (is-allowed-sip013 sip013 token-id recipient))
-		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) err-unauthorised)
-		(contract-call? sip013 transfer amount token-id (as-contract tx-sender) recipient)
-		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
-		(ok true)	
-	)
-)
+;;(define-public (sip013-transfer (amount uint) (token-id uint) (sender principal) (recipient principal) (sip013 sip-013-trait)))
+;;	(begin
+;;		(is-allowed-sip013 sip013 token-id recipient)
+;;		(asserts! (or (is-eq sender tx-sender) (is-eq sender contract-caller)) err-unauthorised)
+;;		(try! (contract-call? sip013 transfer amount token-id (as-contract tx-sender) recipient))
+;;		(print {type: "sft_transfer", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
+;;		(ok true)	
+;;)
 
-;;(define-public (transfer (token-id uint) (amount uint) (sender principal) (recipient principal) (response bool uint))
+;;(define-public (transfer (token-id uint) (amount uint) (sender principal) (recipient principal) (sip013 <sip-013-trait>))
 ;;        (begin
 ;;    	(try! (is-allowed-sip013 sip013 token-id recipient))  
 ;;    	(asserts! (or (is-eq tx-sender recipient) (is-eq tx-sender contract-caller)) err-unauthorised)
-;;    	(as-contract (contract-call? sip013 transfer token-id amount sender recipient))
+;;    	(as-contract (contract-call? (ft-transfer? token-name amount sender recipient)) (ok true))
 ;;    	(print {type: "sft_transfer", token-id: token-id, sender: tx-sender, recipient: recipient, amount: amount})
-;;    	(ok true)
+;;    	(ok true))
 ;;  )
+
+;;  (define-public (transfer (token-id uint) (amount uint) (sender principal) (recipient principal) (sip013 <sip-013-trait>))
+;;  (begin
+;;    ;; Step 1: Check if transfer is allowed
+;;    (try! (is-allowed-sip013 sip013 token-id recipient))
+;;    ;; Step 2: Authorization check
+;;    (asserts! (or (is-eq tx-sender recipient) (is-eq tx-sender contract-caller)) err-unauthorised)
+;;    ;; Step 3: Perform the transfer via contract call
+;;    (unwrap! 
+;;      (as-contract 
+;;        (contract-call? .ft-token transfer amount sender recipient)
+;;      )
+;;      (err u400)
+;;    )
+;;    ;; Step 4: Log the event
+;;    (print {type: "sft_transfer", token-id: token-id, sender: tx-sender, recipient: recipient, amount: amount})
+;;    ;; Step 5: Return success
+;;    (ok true)
+;;  )
+;;)
+
 
 ;;
 ;; admin functions
