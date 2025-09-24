@@ -98,3 +98,11 @@ plan:
             path: contracts/smart-wallet-trait.clar
             clarity-version: 3
       epoch: "3.0"
+    - id: 2
+      transactions:
+        - emulated-contract-publish:
+            contract-name: ext-delegate-stx-pox-4
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/ext-delegate-stx-pox-4.clar
+            clarity-version: 3
+      epoch: "3.1"
