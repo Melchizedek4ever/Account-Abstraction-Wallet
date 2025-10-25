@@ -12,6 +12,11 @@ path = 'contracts/ext-delegate-stx-pox-4.clar'
 clarity_version = 3
 epoch = 3.1
 
+[contracts.ext-sponsored-sbtc-transfer]
+path = 'contracts/ext-sponsored-sbtc-transfer.clar'
+clarity_version = 3
+epoch = 3.1
+
 [contracts.extension-trait]
 path = 'contracts/extension-trait.clar'
 clarity_version = 3
