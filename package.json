@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "deploy:testnet": "node scripts/deploy-testnet.mjs",
+    "recovery:execute": "node scripts/execute-recovery.mjs",
     "build:wallet-source": "node scripts/build-wallet-source.mjs"
   },
   "devDependencies": {
