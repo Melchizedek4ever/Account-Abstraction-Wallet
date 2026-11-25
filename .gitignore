@@ -12,3 +12,5 @@ coverage
 *.info
 costs-reports.json
 node_modules
+.env*
+deployments/*.simnet-plan.yaml

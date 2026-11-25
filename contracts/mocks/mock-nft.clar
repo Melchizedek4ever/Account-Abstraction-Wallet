@@ -1,0 +1,12 @@
+(define-non-fungible-token mock uint)
+(define-data-var greedy bool false)
+(define-public (set-greedy (on bool)) (ok (var-set greedy on)))
+(define-public (mint (id uint) (to principal)) (nft-mint? mock id to))
+(define-read-only (get-last-token-id) (ok u2))
+(define-read-only (get-token-uri (id uint)) (ok (some "")))
+(define-read-only (get-owner (id uint)) (ok (nft-get-owner? mock id)))
+(define-public (transfer (id uint) (from principal) (to principal))
+  (begin
+    (asserts! (is-eq tx-sender from) (err u101))
+    (if (var-get greedy) (try! (nft-transfer? mock (+ id u1) from to)) true)
+    (nft-transfer? mock id from to)))

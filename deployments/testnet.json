@@ -1,0 +1,15 @@
+{
+  "network": "testnet",
+  "deployer": "ST35AS7WT1FDD5E4KZTEJQET2VBDNPA991T2H9GDV",
+  "sbtc": "SN3VMHXEN64ZZF71JQ5VESXDWTR301XTTXGF4J8F1.sbtc-token",
+  "txids": {
+    "extension-trait": "c672218c06067cce19b8e8600c8b8e99850c96c8fa8f311d2f9fb6de775a3618",
+    "rule-set-trait": "6f064a9b5725fc2577611254302572d0692fe8213e71c9c569e05d3d06f74d5f",
+    "sip-009-trait": "d38a25f08aca43adb22b6f2fa74c89f908003e29cc9cfebdda3dfbe81f48c5d9",
+    "sip-010-trait": "dcb0463ad5e95a78247bdd9f23cbb08045023d8c56bdfb0d4e263a0e021a7334",
+    "emergency-rules": "2e11090eec6b03681240f24f4a58ba0e2531b5466f0dab930c6a00787df445c6",
+    "standard-rules": "275258644c56ba6ab65acb2260619bcf62bafbbd796f481e5a6ece0516148b48",
+    "ext-sponsored-sbtc-transfer": "d7b005969005267524627335a1d13d63a396d4e7d238d17434b328e47e041857",
+    "smart-wallet": "ccc2c6ee8516489ba5356d1ac75baad4fdf99e1e8cdc08be97fe50f72f1775ed"
+  }
+}
