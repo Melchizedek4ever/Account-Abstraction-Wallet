@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "deploy:testnet": "node scripts/deploy-testnet.mjs"
+    "deploy:testnet": "node scripts/deploy-testnet.mjs",
+    "build:wallet-source": "node scripts/build-wallet-source.mjs"
   },
   "devDependencies": {
     "@stacks/clarinet-sdk": "4.0.0",
