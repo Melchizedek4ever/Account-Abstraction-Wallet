@@ -1,7 +1,8 @@
 ;; title: ext-sponsored-sbtc-transfer
 ;; version: 1.0
-;; summary: Transfers SBTC tokens and pays fees to sponsor if any
-;; description:
+;; summary: Transfers sBTC and pays a fee to the transaction sponsor, if any.
+;; Adapted, with permission, from friedger/Smart-Wallet.
+;; On testnet the deploy script replaces the sBTC contract id.
 
 (define-constant err-invalid-payload (err u500))
 
