@@ -132,10 +132,11 @@ export default function Home() {
 
         {!status.setupComplete && <section>
           <h2>Finish setup</h2>
-          <p className="hint">Until you finish, changes apply at once and the delays below do not protect you. Set limits and guardians first. This cannot be undone.</p>
+          <p className="hint">You cannot send anything until you finish. Set limits, extensions and guardians first: for now changes apply at once, afterwards most of them wait. This cannot be undone.</p>
           <button onClick={tx((w) => lib.simple(w, "complete-setup"))}>Finish setup</button>
         </section>}
 
+        {status.setupComplete && <>
         <Form title="Send STX" hint="Counts towards the daily limit." action="Send"
           fields={[["amount", "Amount in STX"], ["to", "Recipient"]]}
           onSubmit={(v) => run(() => lib.sendStx(wallet, lib.toUnits(v.amount, 6), principal(v.to)))} />
@@ -143,6 +144,7 @@ export default function Home() {
         <Form title="Send a token" hint={`The token needs a limit first. sBTC is ${SBTC}`} action="Send token"
           fields={[["token", "Token contract"], ["amount", "Amount in base units"], ["to", "Recipient"]]}
           onSubmit={(v) => run(() => lib.sendToken(wallet, contract(v.token), lib.toUnits(v.amount, 0), principal(v.to)))} />
+        </>}
 
         <Form title="Daily limit" hint="Lowering applies at once. After setup, raising takes about a day. Leave the token empty for STX." action="Set limit"
           fields={[["token", "Token contract (optional)"], ["limit", "Limit in base units (1 STX = 1000000)"]]}
@@ -171,7 +173,7 @@ export default function Home() {
         <Form title="Recovery" action="Vote as guardian"
           hint={status.recovery
             ? `${status.recovery.candidate} becomes admin at Bitcoin block ${status.recovery.readyAt} (now ${status.burnHeight}).`
-            : "A majority of guardians can replace a lost admin after about a day. If all of them agree, an admin cannot cancel it."}
+            : "A majority of guardians can replace a lost admin after about a day. Limits and extensions are then reset. If all of them agree, an admin cannot cancel it."}
           fields={[["candidate", "New admin"]]}
           onSubmit={(v) => run(() => lib.voteRecovery(wallet, principal(v.candidate)))}>
           <button type="button" onClick={tx((w) => lib.simple(w, "execute-recovery"))}>Complete recovery</button>
