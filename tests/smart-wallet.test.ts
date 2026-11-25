@@ -27,6 +27,7 @@ const on = (contract: string, fn: string, args: ClarityValue[]) =>
 const ok = (r: ClarityValue) => expect(r).toBeOk(Cl.bool(true));
 const fail = (r: ClarityValue, code: number) => expect(r).toBeErr(Cl.uint(code));
 const stx = (who: string) => simnet.getAssetsMap().get("STX")!.get(who) ?? 0n;
+const finish = () => ok(call("complete-setup"));
 const sendStx = (amount: number, who = admin) =>
   call("stx-transfer", [Cl.uint(amount), Cl.principal(bob), Cl.none()], who);
 const sendFt = (amount: number, who = admin) =>
@@ -50,6 +51,7 @@ beforeEach(() => {
 
 describe("transfers", () => {
   it("sends STX, with and without memo", () => {
+    finish();
     const before = stx(bob);
     ok(sendStx(100));
     ok(call("stx-transfer", [Cl.uint(50), Cl.principal(bob), Cl.some(Cl.bufferFromUtf8("hi"))]));
@@ -58,6 +60,7 @@ describe("transfers", () => {
 
   it("sends SIP-010 tokens the wallet holds", () => {
     ok(call("set-limit", [asset("mock-ft"), Cl.uint(500)]));
+    finish();
     ok(sendFt(200));
     expect(ftBalance(bob)).toBeOk(Cl.uint(200));
     expect(ftBalance(W)).toBeOk(Cl.uint(800));
@@ -65,6 +68,7 @@ describe("transfers", () => {
 
   it("sends SIP-009 NFTs the wallet holds", () => {
     ok(call("set-limit", [asset("mock-nft"), Cl.uint(1)]));
+    finish();
     ok(sendNft(1));
     expect(simnet.callReadOnlyFn("mock-nft", "get-owner", [Cl.uint(1)], deployer).result)
       .toBeOk(Cl.some(Cl.principal(bob)));
@@ -78,13 +82,24 @@ describe("transfers", () => {
     fail(ext(1, 1, thief), ERR.unauthorised);
   });
 
+  it("blocks all spending until setup is complete", () => {
+    ok(call("set-limit", [asset("mock-ft"), Cl.uint(9)]));
+    ok(call("set-limit", [asset("mock-nft"), Cl.uint(9)]));
+    ok(call("set-extension", [c("mock-ext"), Cl.bool(true)]));
+    for (const r of [sendStx(1), sendFt(1), sendNft(1), ext(1, 1)]) fail(r, 4011);
+    finish();
+    for (const r of [sendStx(1), sendFt(1), sendNft(1), ext(1, 1)]) ok(r);
+  });
+
   it("blocks tokens without a limit", () => {
+    finish();
     fail(sendFt(1), ERR.notAllowed);
     fail(sendNft(1), ERR.notAllowed);
   });
 
   it("stops a malicious token from taking the wallet's STX", () => {
     ok(call("set-limit", [asset("mock-ft"), Cl.uint(500)]));
+    finish();
     on("mock-ft", "set-greedy", [Cl.bool(true)]);
     const before = stx(W);
     fail(sendFt(1), ERR.allowance);
@@ -94,6 +109,7 @@ describe("transfers", () => {
 
   it("stops a malicious collection from taking another NFT", () => {
     ok(call("set-limit", [asset("mock-nft"), Cl.uint(5)]));
+    finish();
     on("mock-nft", "set-greedy", [Cl.bool(true)]);
     fail(sendNft(1), ERR.allowance);
   });
@@ -101,6 +117,7 @@ describe("transfers", () => {
 
 describe("spending limits", () => {
   it("enforces the default daily STX limit and resets it the next day", () => {
+    finish();
     ok(sendStx(60 * USTX));
     fail(sendStx(41 * USTX), ERR.notAllowed);
     ok(sendStx(40 * USTX));
@@ -111,6 +128,7 @@ describe("spending limits", () => {
 
   it("does not charge a failed transfer", () => {
     ok(call("set-limit", [asset("mock-ft"), Cl.uint(2000)]));
+    finish();
     fail(sendFt(1500), 1);
     ok(sendFt(1000));
   });
@@ -152,12 +170,16 @@ describe("spending limits", () => {
   it("keeps rule state separate per caller", () => {
     simnet.callPublicFn("standard-rules", "set-limit", [STX, Cl.uint(0)], thief);
     simnet.callPublicFn("standard-rules", "is-allowed-stx", [Cl.uint(99 * USTX), Cl.principal(bob)], thief);
+    finish();
     ok(sendStx(100 * USTX));
   });
 });
 
 describe("extensions", () => {
-  it("refuses extensions that are not on the list", () => fail(ext(5, 5), ERR.notAllowed));
+  it("refuses extensions that are not on the list", () => {
+    finish();
+    fail(ext(5, 5), ERR.notAllowed);
+  });
 
   it("cannot approve code that does not exist yet", () => {
     fail(call("set-extension", [c("not-deployed"), Cl.bool(true)]), 4010);
@@ -166,6 +188,7 @@ describe("extensions", () => {
 
   it("lets an approved extension move at most the stated amount", () => {
     ok(call("set-extension", [c("mock-ext"), Cl.bool(true)]));
+    finish();
     ok(ext(5, 5));
     fail(ext(6, 5), ERR.allowance);
     fail(ext(1, 0), ERR.allowance);
@@ -173,6 +196,7 @@ describe("extensions", () => {
 
   it("charges extension spending against the daily limit", () => {
     ok(call("set-extension", [c("mock-ext"), Cl.bool(true)]));
+    finish();
     fail(ext(101 * USTX, 101 * USTX), ERR.notAllowed);
     ok(ext(100 * USTX, 100 * USTX));
     fail(sendStx(1), ERR.notAllowed);
@@ -206,8 +230,8 @@ describe("extensions", () => {
       Cl.some(Cl.tuple({ token: sbtc, amount: Cl.uint(cap) })),
     ]);
     ok(call("set-extension", [c("ext-sponsored-sbtc-transfer"), Cl.bool(true)]));
-    fail(pay(100, 100), ERR.notAllowed); // no sBTC limit yet
     ok(call("set-limit", [Cl.some(sbtc), Cl.uint(300)]));
+    finish();
     ok(pay(100, 101));
     fail(pay(100, 99), ERR.allowance);
     fail(pay(100, 200), ERR.notAllowed); // 101 + 200 > 300
@@ -217,6 +241,7 @@ describe("extensions", () => {
 
 describe("admins", () => {
   it("adds and removes admins", () => {
+    finish();
     ok(call("enable-admin", [Cl.principal(bob), Cl.bool(true)]));
     ok(sendStx(1, bob));
     ok(call("enable-admin", [Cl.principal(bob), Cl.bool(false)]));
@@ -226,6 +251,7 @@ describe("admins", () => {
   });
 
   it("transfers the wallet", () => {
+    finish();
     fail(call("transfer-wallet", [Cl.principal(admin)]), ERR.forbidden);
     ok(call("transfer-wallet", [Cl.principal(bob)]));
     fail(sendStx(1), ERR.unauthorised);
@@ -311,6 +337,48 @@ describe("recovery", () => {
     fail(call("execute-limit", [STX], newOwner), ERR.nothingPending);
     fail(call("execute-extension", [c("mock-ext")], newOwner), ERR.nothingPending);
     ok(sendStx(1, newOwner));
+  });
+
+  const recover = () => {
+    ok(vote(g1)); ok(vote(g2));
+    simnet.mineEmptyBurnBlocks(144);
+    ok(call("execute-recovery"));
+  };
+
+  it("resets approved limits and extensions", () => {
+    ok(call("set-limit", [asset("mock-ft"), Cl.uint(50)]));
+    ok(call("set-limit", [STX, Cl.uint(900 * USTX)]));
+    ok(call("set-extension", [c("mock-ext"), Cl.bool(true)]));
+    simnet.mineEmptyBurnBlocks(144);
+    ok(call("execute-limit", [asset("mock-ft")]));
+    ok(call("execute-limit", [STX]));
+    ok(call("execute-extension", [c("mock-ext")]));
+    ok(sendFt(1)); ok(ext(1, 1)); ok(sendStx(101 * USTX));
+    recover();
+    fail(sendFt(1, newOwner), ERR.notAllowed);
+    fail(ext(1, 1, newOwner), ERR.notAllowed);
+    fail(sendStx(101 * USTX, newOwner), ERR.notAllowed);
+    ok(sendStx(100 * USTX, newOwner));
+    // the new owner can configure again
+    ok(call("set-limit", [asset("mock-ft"), Cl.uint(5)], newOwner));
+    simnet.mineEmptyBurnBlocks(144);
+    ok(call("execute-limit", [asset("mock-ft")], newOwner));
+    ok(sendFt(5, newOwner));
+  });
+
+  it("keeps a lowered STX limit lowered", () => {
+    ok(call("set-limit", [STX, Cl.uint(10)]));
+    recover();
+    fail(sendStx(11, newOwner), ERR.notAllowed);
+    ok(sendStx(10, newOwner));
+  });
+
+  it("a reset does not refill today's allowance", () => {
+    const rules = (fn: string, args: ClarityValue[]) => simnet.callPublicFn("standard-rules", fn, args, bob).result;
+    const spend = () => rules("is-allowed-stx", [Cl.uint(60 * USTX), Cl.principal(thief)]);
+    ok(spend());
+    ok(rules("reset", []));
+    expect(spend()).toBeOk(Cl.bool(false));
   });
 
   it("does not count one guardian twice or split votes", () => {

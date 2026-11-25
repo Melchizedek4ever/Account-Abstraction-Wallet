@@ -28,7 +28,9 @@ recovery, and the app.
 - **Weakening changes wait, strengthening changes are immediate** (after `complete-setup`):
   raising limits, approving extensions and unfreezing take 144 Bitcoin blocks (about a day);
   changing guardians takes 432 (about three days).
-- **Recovery:** a majority of 3 to 5 guardians replaces all admins after 144 blocks. An admin can
+- **No spending before `complete-setup`**, so the delays always protect funds.
+- **Recovery:** a majority of 3 to 5 guardians replaces all admins after 144 blocks and resets limits
+  and extensions to the defaults (a lowered STX limit stays lowered). An admin can
   cancel it, unless every guardian agrees, which evicts a thief who holds an admin key.
 
 Known limits:
@@ -36,10 +38,9 @@ Known limits:
 - Guardians who all agree can take over the wallet. Choose them accordingly.
 - A thief with an admin key can spend up to the daily limits until a guardian freezes the wallet, and
   can call approved extensions.
-- Admins are added and removed at once. After a recovery, review limits and extensions:
-  existing ones are kept.
+- Admins are added and removed at once.
 - A day is a fixed bucket of 144 blocks, so twice the limit can be spent around a boundary.
-- Before `complete-setup` there are no delays.
+- Before `complete-setup` configuration changes have no delays, but nothing can be spent.
 - Allowances cover assets in the wallet, not assets held for it by other protocols. Approve only
   tokens and extensions you trust.
 

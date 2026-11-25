@@ -18,6 +18,7 @@
 (define-constant err-recovery-active (err u4009))
 
 (define-constant err-no-contract (err u4010))
+(define-constant err-setup (err u4011)) ;; complete-setup has not been called
 
 (define-constant level-standard u1)
 (define-constant level-emergency u2)
@@ -29,7 +30,8 @@
 (define-constant guardian-delay u432)  ;; about 3 days
 (define-constant min-guardians u3)
 
-;; A recovery increments the epoch, which drops all admins and pending changes.
+;; A recovery increments the epoch, which drops all admins and pending changes,
+;; and resets limits and extensions.
 (define-data-var epoch uint u0)
 (define-data-var setup-complete bool false)
 (define-data-var security-level uint level-standard)
@@ -85,6 +87,12 @@
   (ok (asserts! (try! (contract-call? rules is-allowed-extension extension stx ft))
     err-not-allowed)))
 
+;; No spending without the protections that start at complete-setup.
+(define-private (check-spender)
+  (begin
+    (try! (is-admin-calling))
+    (ok (asserts! (var-get setup-complete) err-setup))))
+
 ;;
 ;; calls as the wallet. as-contract? caps what the callee can move.
 ;;
@@ -93,7 +101,7 @@
     (recipient principal)
     (memo (optional (buff 34))))
   (begin
-    (try! (is-admin-calling))
+    (try! (check-spender))
     (try! (check-stx (current-rules) amount recipient))
     (print { a: "stx-transfer", payload: { amount: amount, recipient: recipient, memo: memo } })
     (ok (unwrap!
@@ -109,7 +117,7 @@
     (memo (optional (buff 34)))
     (sip010 <sip-010-trait>))
   (let ((token (contract-of sip010)))
-    (try! (is-admin-calling))
+    (try! (check-spender))
     (try! (check-sip010 (current-rules) token amount recipient))
     (print { a: "sip010-transfer", payload: { amount: amount, recipient: recipient, memo: memo, sip010: token } })
     (ok (unwrap!
@@ -122,7 +130,7 @@
     (recipient principal)
     (sip009 <sip-009-trait>))
   (let ((token (contract-of sip009)))
-    (try! (is-admin-calling))
+    (try! (check-spender))
     (try! (check-sip009 (current-rules) token nft-id recipient))
     (print { a: "sip009-transfer", payload: { nft-id: nft-id, recipient: recipient, sip009: token } })
     (ok (unwrap!
@@ -141,7 +149,7 @@
       (token (match ft f (get token f) current-contract))
       (amount (match ft f (get amount f) u0))
     )
-    (try! (is-admin-calling))
+    (try! (check-spender))
     (try! (check-extension (current-rules) (contract-of extension) stx ft))
     (print { a: "extension-call", payload: { extension: (contract-of extension), payload: payload, stx: stx, ft: ft } })
     (ok (unwrap!
@@ -375,6 +383,7 @@
     (var-set recovery none)
     (var-set round (+ u1 (var-get round)))
     (var-set security-level level-standard)
+    (unwrap! (contract-call? .standard-rules reset) err-not-allowed)
     (print { a: "execute-recovery", payload: active })
     (ok true)))
 

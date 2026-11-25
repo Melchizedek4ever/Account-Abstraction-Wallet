@@ -9,9 +9,19 @@
 (define-constant default-stx-limit u100000000) ;; 100 STX
 
 ;; asset: none = STX, (some contract) = SIP-010 token or SIP-009 collection
-(define-map limits { wallet: principal, asset: (optional principal) } uint)
+;; Limits and extensions belong to a generation, so a reset drops them all.
+;; Spending does not: a reset must not refill today's allowance.
+(define-map generations principal uint)
+(define-map limits
+  { wallet: principal, generation: uint, asset: (optional principal) }
+  uint)
 (define-map spent { wallet: principal, asset: (optional principal), day: uint } uint)
-(define-map extensions { wallet: principal, extension: principal } bool)
+(define-map extensions
+  { wallet: principal, generation: uint, extension: principal }
+  bool)
+
+(define-read-only (get-generation (wallet principal))
+  (default-to u0 (map-get? generations wallet)))
 
 (define-read-only (current-day)
   (/ burn-block-height day-length))
@@ -19,14 +29,16 @@
 ;; Unknown tokens have a limit of 0 and are therefore blocked.
 (define-read-only (get-limit (wallet principal) (asset (optional principal)))
   (default-to (if (is-none asset) default-stx-limit u0)
-    (map-get? limits { wallet: wallet, asset: asset })))
+    (map-get? limits
+      { wallet: wallet, generation: (get-generation wallet), asset: asset })))
 
 (define-read-only (get-spent (wallet principal) (asset (optional principal)))
   (default-to u0
     (map-get? spent { wallet: wallet, asset: asset, day: (current-day) })))
 
 (define-read-only (is-extension-enabled (wallet principal) (extension principal))
-  (default-to false (map-get? extensions { wallet: wallet, extension: extension })))
+  (default-to false (map-get? extensions
+    { wallet: wallet, generation: (get-generation wallet), extension: extension })))
 
 (define-private (charge (asset (optional principal)) (amount uint))
   (let ((total (+ amount (get-spent contract-caller asset))))
@@ -56,7 +68,22 @@
 
 ;; configuration, called by the wallet itself
 (define-public (set-limit (asset (optional principal)) (limit uint))
-  (ok (map-set limits { wallet: contract-caller, asset: asset } limit)))
+  (ok (map-set limits
+    { wallet: contract-caller, generation: (get-generation contract-caller), asset: asset }
+    limit)))
 
 (define-public (set-extension (extension principal) (enabled bool))
-  (ok (map-set extensions { wallet: contract-caller, extension: extension } enabled)))
+  (ok (map-set extensions
+    { wallet: contract-caller, generation: (get-generation contract-caller), extension: extension }
+    enabled)))
+
+;; Back to defaults: no tokens, no extensions. A lowered STX limit stays lowered.
+(define-public (reset)
+  (let (
+      (stx-limit (get-limit contract-caller none))
+      (generation (+ u1 (get-generation contract-caller)))
+    )
+    (map-set generations contract-caller generation)
+    (ok (map-set limits
+      { wallet: contract-caller, generation: generation, asset: none }
+      (if (< stx-limit default-stx-limit) stx-limit default-stx-limit)))))
